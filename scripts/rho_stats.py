@@ -2,7 +2,7 @@ import json
 import numpy as np
 import os
 from matplotlib import pyplot as plt
-testing!!!
+
 def measure_rho(data, max_sep, max_mag, tag=None, use_xy=False, cattype='hsm',
                 alt_tt=False, opt=None, subtract_mean=False, do_rho0=False):
     """Compute the rho statistics
@@ -216,6 +216,91 @@ def write_stats(stat_file, rho1, rho2, rho3, rho4, rho5, rho0=None, tau0=None, t
         json.dump([stats], fp)
     print('Done writing ',stat_file)
 
+def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250):
+    """
+    Compute the tau statistics using multiprocessing
+    and low-memory usage options.
+    """
+    import treecorr
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+
+    # Setup catalog and correlation configs
+    econfig = dict(
+        ra_col='RA',
+        dec_col='DEC',
+        ra_units='deg',
+        dec_units='deg',
+        g1_col='G1_DATA',
+        g2_col='G2_DATA'
+        patch_centers = patch_centers
+    )
+    
+    qconfig = dict(
+        ra_col='RA',
+        dec_col='DEC',
+        ra_units='deg',
+        dec_units='deg',
+        g1_col='DELTA_G1',
+        g2_col='DELTA_G2'
+        patch_centers = patch_centers
+    )
+
+    wconfig = dict(
+        ra_col='RA',
+        dec_col='DEC',
+        ra_units='deg',
+        dec_units='deg',
+        g1_col='G1_X_DELTAT',
+        g2_col='G2_X_DELTAT'
+        patch_centers = patch_centers
+    )
+
+    galconfig = dict(
+        ra_col='ra',
+        dec_col='dec',
+        ra_units='deg',
+        dec_units='deg',
+        g1_col='g1',
+        g2_col='g2'
+        patch_centers = patch_centers
+    )
+
+    ggconfig = dict(
+        sep_units = 'arcmin',
+        bin_slop = 0.1,
+        min_sep = min_sep,
+        max_sep = max_sep,
+        bin_size = 0.2,
+        var_method='bootstrap'
+    )
+    
+    ecat = treecorr.Catalog(star_data, econfig, name='ecat')
+    qcat = treecorr.Catalog(star_data, qconfig, name='qcat')
+    wcat = treecorr.Catalog(star_data, wconfig, name='wcat')
+    gcat = treecorr.Catalog(gal_data, galconfig, name='gcat')
+
+    pairs = [ (gcat, ecat),
+              (gcat, qcat),
+              (gcat, wcat) ]
+    
+    results = []
+    for (cat1, cat2) in pairs:
+        print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
+
+        gg = treecorr.GGCorrelation(ggconfig, verbose=2)
+
+        gg.process(cat1, cat2, low_mem=True, comm=comm)
+        
+        if rank == 0:
+            print('mean xi+ = ',gg.xip.mean())
+            print('mean xi- = ',gg.xim.mean())
+            results.append(gg)
+
+    return results
+
+
 def measure_tau(star_data, gal_data, max_sep, max_mag, tag=None, use_xy=False, cattype='hsm', prefix='piff',
                 alt_tt=False, opt=None, subtract_mean=False):
     """Compute the rho statistics
@@ -265,29 +350,6 @@ def measure_tau(star_data, gal_data, max_sep, max_mag, tag=None, use_xy=False, c
         # g_e2 = g_e2[m<max_mag]
         # g_T = g_T[m<max_mag]
 
-    q1 = e1-p_e1
-    q2 = e2-p_e2
-    dt = (T-p_T)/T
-    w1 = e1 * dt
-    w2 = e2 * dt
-    print('mean e = ',np.mean(e1),np.mean(e2))
-    print('std e = ',np.std(e1),np.std(e2))
-    print('mean T = ',np.mean(T))
-    print('std T = ',np.std(T))
-    print('mean de = ',np.mean(q1),np.mean(q2))
-    print('std de = ',np.std(q1),np.std(q2))
-    print('mean dT = ',np.mean(T-p_T))
-    print('std dT = ',np.std(T-p_T))
-    print('mean dT/T = ',np.mean(dt))
-    print('std dT/T = ',np.std(dt))
-    if subtract_mean:
-        e1 -= np.mean(e1)
-        e2 -= np.mean(e2)
-        q1 -= np.mean(q1)
-        q2 -= np.mean(q2)
-        w1 -= np.mean(w1)
-        w2 -= np.mean(w2)
-        dt -= np.mean(dt)
 
     if use_xy:
         x = star_data['fov_x']
@@ -355,11 +417,7 @@ def measure_tau(star_data, gal_data, max_sep, max_mag, tag=None, use_xy=False, c
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
         rho = treecorr.GGCorrelation(bin_config, verbose=2)
-
-        if cat1 is cat2:
-            rho.process(cat1)
-        else:
-            rho.process(cat1, cat2)
+        rho.process(cat1, cat2)
         print('mean xi+ = ',rho.xip.mean())
         print('mean xi- = ',rho.xim.mean())
         results.append(rho)
