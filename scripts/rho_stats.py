@@ -218,8 +218,7 @@ def write_stats(stat_file, rho1, rho2, rho3, rho4, rho5, rho0=None, tau0=None, t
 
 def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250):
     """
-    Compute the tau statistics using multiprocessing
-    and low-memory usage options.
+    Compute the tau statistics using multiprocessing and low-memory usage options.
     """
     import treecorr
     from mpi4py import MPI
@@ -286,6 +285,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
               (gcat, wcat) ]
     
     results = []
+    # TOOO: TEST: might need to nix for loop and just do each process in if statement
     for (cat1, cat2) in pairs:
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
@@ -339,17 +339,30 @@ def measure_tau(star_data, gal_data, max_sep, max_mag, tag=None, use_xy=False, c
     g_e2 = gal_data['g2']
     # g_T = gal_data['gal_T']
 
+    q1 = e1-p_e1
+    q2 = e2-p_e2
+    dt = (T-p_T)/T
+    w1 = e1 * dt
+    w2 = e2 * dt
+    print('mean e = ',np.mean(e1),np.mean(e2))
+    print('std e = ',np.std(e1),np.std(e2))
+    print('mean T = ',np.mean(T))
+    print('std T = ',np.std(T))
+    print('mean de = ',np.mean(q1),np.mean(q2))
+    print('std de = ',np.std(q1),np.std(q2))
+    print('mean dT = ',np.mean(T-p_T))
+    print('std dT = ',np.std(T-p_T))
+    print('mean dT/T = ',np.mean(dt))
+    print('std dT/T = ',np.std(dt))
 
-        # e1 = e1[m<max_mag]
-        # e2 = e2[m<max_mag]
-        # T = T[m<max_mag]
-        # p_e1 = p_e1[m<max_mag]
-        # p_e2 = p_e2[m<max_mag]
-        # p_T = p_T[m<max_mag]
-        # g_e1 = g_e1[m<max_mag]
-        # g_e2 = g_e2[m<max_mag]
-        # g_T = g_T[m<max_mag]
-
+    if subtract_mean:
+        e1 -= np.mean(e1)
+        e2 -= np.mean(e2)
+        q1 -= np.mean(q1)
+        q2 -= np.mean(q2)
+        w1 -= np.mean(w1)
+        w2 -= np.mean(w2)
+        dt -= np.mean(dt)
 
     if use_xy:
         x = star_data['fov_x']
@@ -416,18 +429,18 @@ def measure_tau(star_data, gal_data, max_sep, max_mag, tag=None, use_xy=False, c
     for (cat1, cat2) in pairs:
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
-        rho = treecorr.GGCorrelation(bin_config, verbose=2)
-        rho.process(cat1, cat2)
-        print('mean xi+ = ',rho.xip.mean())
-        print('mean xi- = ',rho.xim.mean())
-        results.append(rho)
+        gg = treecorr.GGCorrelation(bin_config, verbose=2)
+        gg.process(cat1, cat2)
+        print('mean xi+ = ',gg.xip.mean())
+        print('mean xi- = ',gg.xim.mean())
+        results.append(gg)
 
-    if alt_tt:
-        print('Doing alt correlation of %s vs %s'%(dtcat.name, dtcat.name))
+#     if alt_tt:
+#         print('Doing alt correlation of %s vs %s'%(dtcat.name, dtcat.name))
 
-        rho = treecorr.KKCorrelation(bin_config, verbose=2)
-        rho.process(dtcat)
-        results.append(rho)
+#         gg = treecorr.KKCorrelation(bin_config, verbose=2)
+#         gg.process(dtcat)
+#         results.append(gg)
 
     return results
 
