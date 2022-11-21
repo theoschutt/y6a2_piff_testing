@@ -216,7 +216,8 @@ def write_stats(stat_file, rho1, rho2, rho3, rho4, rho5, rho0=None, tau0=None, t
         json.dump([stats], fp)
     print('Done writing ',stat_file)
 
-def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250):
+def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
+                    output_dir=None):
     """
     Compute the tau statistics using multiprocessing and low-memory usage options.
     """
@@ -232,7 +233,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         ra_units='deg',
         dec_units='deg',
         g1_col='G1_DATA',
-        g2_col='G2_DATA'
+        g2_col='G2_DATA',
         patch_centers = patch_centers
     )
     
@@ -242,7 +243,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         ra_units='deg',
         dec_units='deg',
         g1_col='DELTA_G1',
-        g2_col='DELTA_G2'
+        g2_col='DELTA_G2',
         patch_centers = patch_centers
     )
 
@@ -252,7 +253,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         ra_units='deg',
         dec_units='deg',
         g1_col='G1_X_DELTAT',
-        g2_col='G2_X_DELTAT'
+        g2_col='G2_X_DELTAT',
         patch_centers = patch_centers
     )
 
@@ -262,7 +263,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         ra_units='deg',
         dec_units='deg',
         g1_col='g1',
-        g2_col='g2'
+        g2_col='g2',
         patch_centers = patch_centers
     )
 
@@ -274,11 +275,17 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         bin_size = 0.2,
         var_method='bootstrap'
     )
-    
-    ecat = treecorr.Catalog(star_data, econfig, name='ecat')
-    qcat = treecorr.Catalog(star_data, qconfig, name='qcat')
-    wcat = treecorr.Catalog(star_data, wconfig, name='wcat')
-    gcat = treecorr.Catalog(gal_data, galconfig, name='gcat')
+
+    print('Loading catalogs as treecorr Catalogs.')
+    ecat = treecorr.Catalog(star_data, econfig)
+    qcat = treecorr.Catalog(star_data, qconfig)
+    wcat = treecorr.Catalog(star_data, wconfig)
+    gcat = treecorr.Catalog(gal_data, galconfig)
+
+    ecat.name = 'ecat'
+    qcat.name = 'qcat'
+    wcat.name = 'wcat'
+    gcat.name = 'gcat'
 
     pairs = [ (gcat, ecat),
               (gcat, qcat),
@@ -286,7 +293,8 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
     
     results = []
     # TOOO: TEST: might need to nix for loop and just do each process in if statement
-    for (cat1, cat2) in pairs:
+    if True:
+        (cat1, cat2) = pairs[0]
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
         gg = treecorr.GGCorrelation(ggconfig, verbose=2)
@@ -296,7 +304,54 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         if rank == 0:
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
+            gg.write(os.path.join(output_dir, '%s_%s_tau0_stats_1.fits'),
+                     write_patch_results=True)
             results.append(gg)
+
+    if True:
+        (cat1, cat2) = pairs[1]
+        print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
+
+        gg = treecorr.GGCorrelation(ggconfig, verbose=2)
+
+        gg.process(cat1, cat2, low_mem=True, comm=comm)
+        
+        if rank == 0:
+            print('mean xi+ = ',gg.xip.mean())
+            print('mean xi- = ',gg.xim.mean())
+            gg.write(os.path.join(output_dir, '%s_%s_tau2_stats_1.fits'),
+                     write_patch_results=True)
+            results.append(gg)
+
+    if True:
+        (cat1, cat2) = pairs[2]
+        print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
+
+        gg = treecorr.GGCorrelation(ggconfig, verbose=2)
+
+        gg.process(cat1, cat2, low_mem=True, comm=comm)
+        
+        if rank == 0:
+            print('mean xi+ = ',gg.xip.mean())
+            print('mean xi- = ',gg.xim.mean())
+            gg.write(os.path.join(output_dir, '%s_%s_tau5_stats_1.fits'),
+                     write_patch_results=True)
+            results.append(gg)
+
+#    for (cat1, cat2) in pairs:
+#
+#        print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
+#
+#        gg = treecorr.GGCorrelation(ggconfig, verbose=2)
+#
+#        gg.process(cat1, cat2, low_mem=True, comm=comm)
+#        
+#        if rank == 0:
+#           print('mean xi+ = ',gg.xip.mean())
+#            print('mean xi- = ',gg.xim.mean())
+#            gg.write(os.path.join(output_dir, '%s_%s_ggcorr_stats_1.fits'),
+#                     write_patch_results=True)
+#            results.append(gg)
 
     return results
 
