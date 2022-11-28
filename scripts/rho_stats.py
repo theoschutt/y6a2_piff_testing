@@ -216,8 +216,8 @@ def write_stats(stat_file, rho1, rho2, rho3, rho4, rho5, rho0=None, tau0=None, t
         json.dump([stats], fp)
     print('Done writing ',stat_file)
 
-def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
-                    output_dir=None):
+def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250,
+                    tau0=True, tau2=True, tau5=True, output_dir=None, version=None):
     """
     Compute the tau statistics using multiprocessing and low-memory usage options.
     """
@@ -292,8 +292,8 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
               (gcat, wcat) ]
     
     results = []
-    # TOOO: TEST: might need to nix for loop and just do each process in if statement
-    if True:
+
+    if tau0:
         (cat1, cat2) = pairs[0]
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
@@ -304,11 +304,15 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         if rank == 0:
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
-            gg.write(os.path.join(output_dir, '%s_%s_tau0_stats_1.fits'),
-                     write_patch_results=True)
+            stats_fn = os.path.join(output_dir,
+                '%s_%s_tau0_stats_%s.fits'%(cat1.name,
+                                            cat2.name,
+                                            version))
+            print('Writing stats to: ', stats_fn)
+            gg.write(stats_fn, write_patch_results=True)
             results.append(gg)
 
-    if True:
+    if tau2:
         (cat1, cat2) = pairs[1]
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
@@ -319,11 +323,15 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         if rank == 0:
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
-            gg.write(os.path.join(output_dir, '%s_%s_tau2_stats_1.fits'),
-                     write_patch_results=True)
+            stats_fn = os.path.join(output_dir,
+                '%s_%s_tau2_stats_%i.fits'%(cat1.name,
+                                            cat2.name,
+                                            version))
+            print('Writing stats to: ', stats_fn)
+            gg.write(stats_fn, write_patch_results=True)
             results.append(gg)
 
-    if True:
+    if tau5:
         (cat1, cat2) = pairs[2]
         print('Doing correlation of %s vs %s'%(cat1.name, cat2.name))
 
@@ -334,8 +342,12 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         if rank == 0:
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
-            gg.write(os.path.join(output_dir, '%s_%s_tau5_stats_1.fits'),
-                     write_patch_results=True)
+            stats_fn = os.path.join(output_dir,
+                '%s_%s_tau5_stats_%i.fits'%(cat1.name,
+                                            cat2.name,
+                                            version))
+            print('Writing stats to: ', stats_fn)
+            gg.write(stats_fn, write_patch_results=True)
             results.append(gg)
 
 #    for (cat1, cat2) in pairs:
