@@ -44,19 +44,19 @@ if not os.path.isdir(work_dir):
     os.mkdir(work_dir)
 
 print('Computing tau statistics...')
-_ = measure_tau_mpi(piff_fn, mdet_fn, patch_fn, max_sep=max_sep,
-                    tau0=False, output_dir=work_dir)
+stats = measure_tau_mpi(piff_fn, mdet_fn, patch_fn, max_sep=max_sep,
+                        output_dir=work_dir, version=ver)
 print('Computation complete.')
 # If doing subset of taus, write_stats_tau and plot_overall tau won't
 # work!
 # TODO: write a write_stats_tau that can take the fits files and make
 # the .json file from those.
 
-# stat_file = os.path.join(work_dir, "tau_%s_%s_%i.json"%(name,band,ver))
-# print('Computation complete. Writing stats to file: %s'%stat_file)
-# write_stats_tau(stat_file,*stats)
-# print('Wrote stats to file.')
+stat_file = os.path.join(work_dir, "tau_%s_%s_%i.json"%(name,band,ver))
+print('Computation complete. Writing stats to file: %s'%stat_file)
+write_stats_tau(stat_file,*stats)
+print('Wrote stats to file.')
 
-# print('Plotting tau statistics and writing to file...')
-# plot_overall_tau(work_dir, name, bands, ver)
-# print('Plotting complete.')
+ print('Plotting tau statistics and writing to file...')
+ plot_overall_tau(work_dir, name, bands, ver)
+ print('Plotting complete.')
