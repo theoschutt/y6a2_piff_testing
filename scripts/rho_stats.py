@@ -232,8 +232,8 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         dec_col='DEC',
         ra_units='deg',
         dec_units='deg',
-        g1_col='G1_DATA',
-        g2_col='G2_DATA',
+        g1_col='G1_DATA_MEANSUB',
+        g2_col='G2_DATA_MEANSUB',
         patch_centers = patch_centers
     )
     
@@ -242,8 +242,8 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         dec_col='DEC',
         ra_units='deg',
         dec_units='deg',
-        g1_col='DELTA_G1',
-        g2_col='DELTA_G2',
+        g1_col='DELTA_G1_MEANSUB',
+        g2_col='DELTA_G2_MEANSUB',
         patch_centers = patch_centers
     )
 
@@ -252,8 +252,8 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
         dec_col='DEC',
         ra_units='deg',
         dec_units='deg',
-        g1_col='G1_X_DELTAT',
-        g2_col='G2_X_DELTAT',
+        g1_col='G1_X_DELTAT_MEANSUB',
+        g2_col='G2_X_DELTAT_MEANSUB',
         patch_centers = patch_centers
     )
 
