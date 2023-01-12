@@ -305,9 +305,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
             stats_fn = os.path.join(output_dir,
-                '%s_%s_tau0_stats_%s.fits'%(cat1.name,
-                                            cat2.name,
-                                            version))
+                'tau0_stats_%s.fits'%(version))
             print('Writing stats to: ', stats_fn)
             gg.write(stats_fn, write_patch_results=True)
             results.append(gg)
@@ -324,9 +322,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
             stats_fn = os.path.join(output_dir,
-                '%s_%s_tau2_stats_%i.fits'%(cat1.name,
-                                            cat2.name,
-                                            version))
+                'tau2_stats_%i.fits'%(version))
             print('Writing stats to: ', stats_fn)
             gg.write(stats_fn, write_patch_results=True)
             results.append(gg)
@@ -343,9 +339,7 @@ def measure_tau_mpi(star_data, gal_data, patch_centers, min_sep=0.5, max_sep=250
             print('mean xi+ = ',gg.xip.mean())
             print('mean xi- = ',gg.xim.mean())
             stats_fn = os.path.join(output_dir,
-                '%s_%s_tau5_stats_%i.fits'%(cat1.name,
-                                            cat2.name,
-                                            version))
+                'tau5_stats_%i.fits'%(version))
             print('Writing stats to: ', stats_fn)
             gg.write(stats_fn, write_patch_results=True)
             results.append(gg)
@@ -967,7 +961,7 @@ def plot_overall_tau(work, name, bands, ver):
     # base_keys = ['r', 'i', 'z']
     base_keys = bands
     keys = [ name+'_' + k for k in base_keys ]
-
+    print(keys)
     for key in keys:
         stat_file = os.path.join(work, "tau_%s_%i.json"%(key,ver))
         if not os.path.isfile(stat_file):
@@ -1030,4 +1024,6 @@ def plot_overall_tau(work, name, bands, ver):
         
         plt.clf()
         pretty_tau(meanr, tau0p, sig_tau0, sqrtn, tau2p, sig_tau2, tau5p, sig_tau5)
-        plt.savefig(os.path.join(work, 'tau_%s_%i.pdf'%(key,ver)))
+        pdffile = os.path.join(work, 'tau_%s_%i.pdf'%(key,ver))
+        plt.savefig(pdffile)
+        print('wrote',pdffile)
