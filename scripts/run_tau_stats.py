@@ -11,51 +11,47 @@ import numpy as np
 import os, sys
 # from tqdm import tqdm
 from matplotlib import pyplot as plt
-from rho_stats import measure_tau, write_stats, write_stats_tau, plot_overall_tau
+from rho_stats import (measure_tau_mpi, write_stats,
+                       write_stats_tau, plot_overall_tau)
 
-bands = ['griz', 'riz']
+bands = ['riz'] # for plot_overall_tau function
+band = bands[0] # for specifying file name
 name = 'y6a2_piff_v3_allres_v3'
-ver = 1
+ver = 3
 
 cat_dir = '/global/cscratch1/sd/schutt20/y6a2_piff_testing/catalogs/'
-cattype = 'hsm'
-piff_fn = os.path.join(cat_dir, '%s_collated.fits'%name)
-piff_cols = ['RA', 'DEC', 'T_DATA', 'T_MODEL', 'G1_DATA', 'G1_MODEL', 'G2_DATA', 'G2_MODEL']
+
+piff_fn = os.path.join(cat_dir, 'y6a2_piff_v3_allres_v3_taustat_input_v5.fits')
+# mdet_fn = '/global/cscratch1/sd/myamamot/des-y6-analysis/y6_measurement/metadetection_v2.fits'
+mdet_fn = os.path.join(cat_dir, 'y6a2_mdet_v2_response_corrected.fits')
+patch_fn = ('/global/cfs/cdirs/des/y6-shear-catalogs/'
+            'patches-centers-altrem-npatch200-seed9999.fits')
+
+# piff_cols = ['RA', 'DEC', 'T_DATA', 'T_MODEL', 'DELTA_T', 
+#              'G1_DATA', 'G1_MODEL', 'G2_DATA', 'G2_MODEL',
+#              'DELTA_G1', 'DELTA_G2', 'G1_X_DELTAT', 'G2_X_DELTAT']
 
 
-#load metadetect catalog and correct for global shear responsez
-mdet_fn = '/global/cscratch1/sd/myamamot/des-y6-analysis/y6_measurement/metadetection_v2.fits'
-print('Loading metadetect catalog: %s'%mdet_fn)
-mdet_input_flat = fitsio.read(mdet_fn)
-mdet_input_flat['g1'] *= 1/mdet_input_flat['R_all']
-mdet_input_flat['g2'] *= 1/mdet_input_flat['R_all']
-print('Load complete. Total rows: %s'%len(mdet_input_flat))
+#load metadetect catalog and correct for global shear response
+# FIXME: correct for response in mdet catalog
 
-#limit catalogs for testing purposes
-# piff_cat = piff_cat[:100000]
-# mdet_input_flat = mdet_input_flat[:100000]
+# get patch_centers file
 
 max_sep = 250
-max_mag = -1
-work_dir = '/global/cfs/cdirs/des/schutt20/y6_psf/y6a2_piff_testing/tau_stats_output'
+work_dir = ('/global/cfs/cdirs/des/schutt20/y6_psf/'
+            'y6a2_piff_testing/tau_stats_output')
 if not os.path.isdir(work_dir):
     os.mkdir(work_dir)
-    
-band = 'riz'
-# load in rows for given bands with PSF_FWHM < 1.5"
-row_idx = os.path.join(cat_dir, '%s_fwhm_lt1.5_%s_10M_idx.txt'%(name,band))
-print('Loading PSF catalog indices for band(s): %s'%band)
-print('Using index file: %s'%row_idx)
-piff_rows = np.fromfile(row_idx, int)
-print('Load complete. Total rows: %i'%len(piff_rows))
-
-print('Loading PSF catalog with above indices: %s'%piff_fn)
-piff_cat = fitsio.read(piff_fn, rows=piff_rows, columns=piff_cols)
-print('Load complete.')
 
 print('Computing tau statistics...')
-stats = measure_tau(piff_cat, mdet_input_flat, max_sep, max_mag, 
-                    work_dir, cattype=cattype, subtract_mean=True)
+stats = measure_tau_mpi(piff_fn, mdet_fn, patch_fn, max_sep=max_sep,
+                        output_dir=work_dir, version=ver)
+print('Computation complete.')
+# If doing subset of taus, write_stats_tau and plot_overall tau won't
+# work!
+# TODO: write a write_stats_tau that can take the fits files and make
+# the .json file from those.
+
 stat_file = os.path.join(work_dir, "tau_%s_%s_%i.json"%(name,band,ver))
 print('Computation complete. Writing stats to file: %s'%stat_file)
 write_stats_tau(stat_file,*stats)
