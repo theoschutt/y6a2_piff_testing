@@ -17,11 +17,11 @@ from rho_stats import (measure_tau_mpi, write_stats,
 bands = ['riz'] # for plot_overall_tau function
 band = bands[0] # for specifying file name
 name = 'y6a2_piff_v3_allres_v3'
-ver = 2
+ver = 3
 
 cat_dir = '/global/cscratch1/sd/schutt20/y6a2_piff_testing/catalogs/'
 
-piff_fn = os.path.join(cat_dir, 'y6a2_piff_v3_allres_v3_taustat_input_v2.fits')
+piff_fn = os.path.join(cat_dir, 'y6a2_piff_v3_allres_v3_taustat_input_v5.fits')
 # mdet_fn = '/global/cscratch1/sd/myamamot/des-y6-analysis/y6_measurement/metadetection_v2.fits'
 mdet_fn = os.path.join(cat_dir, 'y6a2_mdet_v2_response_corrected.fits')
 patch_fn = ('/global/cfs/cdirs/des/y6-shear-catalogs/'
@@ -57,6 +57,6 @@ print('Computation complete. Writing stats to file: %s'%stat_file)
 write_stats_tau(stat_file,*stats)
 print('Wrote stats to file.')
 
- print('Plotting tau statistics and writing to file...')
- plot_overall_tau(work_dir, name, bands, ver)
- print('Plotting complete.')
+print('Plotting tau statistics and writing to file...')
+plot_overall_tau(work_dir, name, bands, ver)
+print('Plotting complete.')
