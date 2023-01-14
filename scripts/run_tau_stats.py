@@ -17,7 +17,7 @@ from rho_stats import (measure_tau_mpi, write_stats,
 bands = ['riz'] # for plot_overall_tau function
 band = bands[0] # for specifying file name
 name = 'y6a2_piff_v3_allres_v3'
-ver = 3
+ver = 4
 
 cat_dir = '/global/cscratch1/sd/schutt20/y6a2_piff_testing/catalogs/'
 
@@ -27,15 +27,9 @@ mdet_fn = os.path.join(cat_dir, 'y6a2_mdet_v2_response_corrected.fits')
 patch_fn = ('/global/cfs/cdirs/des/y6-shear-catalogs/'
             'patches-centers-altrem-npatch200-seed9999.fits')
 
-# piff_cols = ['RA', 'DEC', 'T_DATA', 'T_MODEL', 'DELTA_T', 
-#              'G1_DATA', 'G1_MODEL', 'G2_DATA', 'G2_MODEL',
-#              'DELTA_G1', 'DELTA_G2', 'G1_X_DELTAT', 'G2_X_DELTAT']
-
-
-#load metadetect catalog and correct for global shear response
-# FIXME: correct for response in mdet catalog
-
-# get patch_centers file
+print('Piff catalog: ',piff_fn)
+print('Shear catalog: ',mdet_fn)
+print('Shear catalog patches: ',patch_fn)
 
 max_sep = 250
 work_dir = ('/global/cfs/cdirs/des/schutt20/y6_psf/'
@@ -45,7 +39,7 @@ if not os.path.isdir(work_dir):
 
 print('Computing tau statistics...')
 stats = measure_tau_mpi(piff_fn, mdet_fn, patch_fn, max_sep=max_sep,
-                        output_dir=work_dir, version=ver)
+                        tau0=False, output_dir=work_dir, version=ver)
 print('Computation complete.')
 # If doing subset of taus, write_stats_tau and plot_overall tau won't
 # work!
