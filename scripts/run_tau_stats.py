@@ -7,12 +7,10 @@ That is: bands = ['griz'] will calculate the tau stats over the combined griz ca
 """
 
 import fitsio
-import numpy as np
 import os, sys
-# from tqdm import tqdm
-from matplotlib import pyplot as plt
 from rho_stats import (measure_tau_mpi, write_stats,
-                       write_stats_tau, plot_overall_tau)
+                       write_stats_tau, write_tau_from_fits,
+                       plot_overall_tau)
 
 bands = ['riz'] # for plot_overall_tau function
 band = bands[0] # for specifying file name
@@ -37,19 +35,31 @@ work_dir = ('/global/cfs/cdirs/des/schutt20/y6_psf/'
 if not os.path.isdir(work_dir):
     os.mkdir(work_dir)
 
+# set which corr functions to calculate
+tau0 = True
+tau2 = True
+tau5 = True
+write_json = True # set to False if all tau stats won't be written by
+                  # end of run.
+
 print('Computing tau statistics...')
 stats = measure_tau_mpi(piff_fn, mdet_fn, patch_fn, max_sep=max_sep,
-                        tau0=False, output_dir=work_dir, version=ver)
-print('Computation complete.')
-# If doing subset of taus, write_stats_tau and plot_overall tau won't
-# work!
-# TODO: write a write_stats_tau that can take the fits files and make
-# the .json file from those.
+                        tau0=tau0, tau2=tau2, tau5=tau5,
+                        output_dir=work_dir, version=ver)
 
-stat_file = os.path.join(work_dir, "tau_%s_%s_%i.json"%(name,band,ver))
 print('Computation complete. Writing stats to file: %s'%stat_file)
-write_stats_tau(stat_file,*stats)
-print('Wrote stats to file.')
+stat_file = os.path.join(work_dir, "tau_%s_%s_%i.json"%(name,band,ver))
+
+if write_json:
+    
+    if (tau0 and tau2 and tau5):
+        write_stats_tau(stat_file,*stats)
+    else:
+        tau0_fn = os.path.join(work_dir, 'tau0_stats_%s.fits'%(ver))
+        tau2_fn = os.path.join(work_dir, 'tau2_stats_%s.fits'%(ver))
+        tau5_fn = os.path.join(work_dir, 'tau5_stats_%s.fits'%(ver))
+        write_tau_from_fits(stat_file, tau0_fn, tau2_fn, tau5_fn)
+    print('Wrote stats to file.')
 
 print('Plotting tau statistics and writing to file...')
 plot_overall_tau(work_dir, name, bands, ver)

@@ -956,6 +956,42 @@ def plot_overall_rho(work, name, bands):
             figfile = os.path.join(work,'corrtt_' + key + '.pdf')
             plt.savefig(figfile)
 
+def write_tau_from_fits(stat_file, tau0_fits, tau2_fits, tau5_fits):
+    
+    import fitsio
+    
+    tau0 = fitsio.FITS(tau0_fits)[1]
+    tau2 = fitsio.FITS(tau2_fits)[1]
+    tau5 = fitsio.FITS(tau5_fits)[1]
+
+    stats = [
+        list(tau0['meanlogr'][:]),
+        list(tau0['xip'][:]),
+        list(tau0['xip_im'][:]),
+        list(tau0['xim'][:]),
+        list(tau0['xim_im'][:]),
+        list(tau0['sigma_xip'][:]**2),
+        list(tau0['sigma_xim'][:]**2),
+        list(tau2['xip'][:]),
+        list(tau2['xip_im'][:]),
+        list(tau2['xim'][:]),
+        list(tau2['xim_im'][:]),
+        list(tau2['sigma_xip'][:]**2),
+        list(tau2['sigma_xim'][:]**2),
+        list(tau5['xip'][:]),
+        list(tau5['xip_im'][:]),
+        list(tau5['xim'][:]),
+        list(tau5['xim_im'][:]),
+        list(tau5['sigma_xip'][:]**2),
+        list(tau5['sigma_xim'][:]**2)
+    ]
+    
+    #print('stats = ',stats)
+    print('stat_file = ',stat_file)
+    with open(stat_file,'w') as fp:
+        json.dump([stats], fp)
+    print('Done writing ',stat_file)
+
 def plot_overall_tau(work, name, bands, ver):
 
     # base_keys = ['r', 'i', 'z']
