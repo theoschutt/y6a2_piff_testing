@@ -784,13 +784,13 @@ def plot_corr_tt(meanr, corr, sig):
     plt.yscale('log', nonposy='clip')
     plt.tight_layout()
 
-def plot_overall_rho(work, name, bands):
+def plot_overall_rho(work, name, bands, version):
 
     base_keys = bands
-    keys = [ name+'_' + k for k in base_keys ]
+    keys = [ name+'_' + k + '_%i'%version for k in base_keys ]
 
     for key in keys:
-        stat_file = os.path.join(work, "rho_" + key + ".json")
+        stat_file = os.path.join(work, "rho_%s_%s.json"%(name,key))
         if not os.path.isfile(stat_file):
             print('File not found: ',stat_file,' (skipping)')
             continue
